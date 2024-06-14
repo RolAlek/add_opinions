@@ -1,6 +1,6 @@
 from datetime import datetime
 from random import randrange
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -22,9 +22,15 @@ def index_view():
     quantity = Review.query.count()
     if not quantity:
         return 'В базе пусто!'
-    offset_value = randrange(quantity)
-    review = Review.query.offset(offset_value).first()
-    return review.text
+    return render_template(
+        'review.html',
+        review=Review.query.offset(randrange(quantity)).first()
+    )
+
+
+@app.route('/add')
+def add_review_view():
+    return render_template('add_review.html')
 
 
 if __name__ == '__main__':
