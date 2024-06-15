@@ -24,13 +24,21 @@ def index_view():
         return 'В базе пусто!'
     return render_template(
         'review.html',
-        review=Review.query.offset(randrange(quantity)).first()
+        review=Review.query.offset(randrange(quantity)).first(),
     )
 
 
 @app.route('/add')
 def add_review_view():
     return render_template('add_review.html')
+
+
+@app.route('/reviews/<int:id>')
+def review_view(id):
+    return render_template(
+        'review.html',
+        review = Review.query.get_or_404(id),
+    )
 
 
 if __name__ == '__main__':
