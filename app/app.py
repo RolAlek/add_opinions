@@ -1,7 +1,7 @@
 from datetime import datetime
 from random import randrange
 
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, URLField
 from wtforms.validators import DataRequired, Length, Optional
@@ -42,10 +42,10 @@ class ReviewForm(FlaskForm):
 def index_view():
     quantity = Review.query.count()
     if not quantity:
-        return 'В базе пусто!'
+        abort(500)
     return render_template(
         'review.html',
-        review=Review.query.offset(randrange(quantity)).first(),
+        review=Review.query.offset(randrange(quantity)).first()
     )
 
 
@@ -73,6 +73,17 @@ def review_view(id):
         'review.html',
         review = Review.query.get_or_404(id),
     )
+
+
+@app.errorhandler(500)
+def internall_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
 
 
 if __name__ == '__main__':
