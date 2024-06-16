@@ -1,7 +1,7 @@
 from datetime import datetime
 from random import randrange
 
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, URLField
 from wtforms.validators import DataRequired, Length, Optional
@@ -53,6 +53,9 @@ def index_view():
 def add_review_view():
     form = ReviewForm()
     if form.validate_on_submit():
+        if Review.query.filter_by(text=form.text.data).first():
+            flash('Такое мнение уже было оставлено ранее!')
+            return render_template('add_review.html', form=form)
         review = Review(
             title=form.title.data,
             text=form.text.data,
