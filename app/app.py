@@ -1,7 +1,10 @@
+import click
+import csv
 from datetime import datetime
 from random import randrange
 
 from flask import Flask, render_template, redirect, url_for, flash, abort
+from flask_migrate import Migrate
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, URLField
 from wtforms.validators import DataRequired, Length, Optional
@@ -13,6 +16,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://aleks_rol:xofsep-pyjzoS-6c
 app.config['SECRET_KEY'] = 'Gicbo9-qyxjoh-xybfyw'
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,6 +25,7 @@ class Review(db.Model):
     text = db.Column(db.Text, unique=True, nullable=False)
     source = db.Column(db.String(256))
     create_date = db.Column(db.DateTime, index=True, default=datetime.now)
+    added_by = db.Column(db.String(64))
 
 
 class ReviewForm(FlaskForm):
@@ -84,6 +90,21 @@ def internall_error(error):
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
+
+
+@app.cli.command('load_reviews')
+def load_reviews_command():
+    """Функция загрузки контента в БД."""
+    with open('../reviews.csv', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        counter = 0
+        for row in reader:
+            review = Review(**row)
+            db.session.add(review)
+            db.session.commit()
+            counter += 1
+    click.echo(f'Добавлено нового контента: {counter}')
+
 
 
 if __name__ == '__main__':
